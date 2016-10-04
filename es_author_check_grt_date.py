@@ -25,6 +25,7 @@
 import argparse
 import configparser
 import json
+import os
 import sys
 from time import time
 
@@ -35,7 +36,7 @@ from elasticsearch import Elasticsearch
 import pandas as pd
 
 
-VERSION = "version 0.3"
+VERSION = "version 0.4"
 
 
 def write_file(filename, data):
@@ -59,11 +60,18 @@ def read_arguments():
 
     return args
 
-def check_authors(conf):
+def get_indexes(conf):
+    # Get the indexes into a list(indexes)
+    database = "curl -k -u "+conf['user']+":"+conf['password']+" 'https://"+conf['es']+"/_cat/aliases' 2>/dev/null | awk 'BEGIN {FIELDWIDTHS = "+'"2 1"'+"} {print $2}' | uniq"
+    indexes = (os.popen(database).read().split('\n'))
+
+    return indexes
+
+def check_authors(conf, backends):
     authors_pandas = []
     #.filter('range', **{"metadata__updated_on": {"from": from_date}})
     client = Elasticsearch('https://'+conf['user']+':'+conf['password']+'@'+conf['es'],use_ssl=True,verify_certs=True,ca_certs=certifi.where())
-    s = Search(using=client, index=conf['backends']).fields(["author_name", "author_uuid"]).sort({"metadata__updated_on" : {"order" : "desc"}})
+    s = Search(using=client, index=backends).fields(["author_name", "author_uuid"]).sort({"metadata__updated_on" : {"order" : "desc"}})
     response = s.scan()
 
     count = 1
@@ -98,8 +106,8 @@ def get_conf(conf_name):
     conf = {}
     for project in Config.sections():
         if project != "notification":
-            indexes = Config[project]['indexes'].replace(", ", ",")
-            conf['backends'] = indexes.split(',')
+            #indexes = Config[project]['indexes'].replace(", ", ",")
+            #conf['backends'] = indexes.split(',')
             conf['es'] = Config[project]['es']
             conf['user'] = Config[project]['user']
             conf['password'] = Config[project]['password']
@@ -114,10 +122,13 @@ def main():
 
     conf_name = args.config_file
 
+
     conf = get_conf(conf_name)
 
+    indexes = get_indexes(conf)
+
     tiempo_inicio_scan = time()
-    authors_all = check_authors(conf)
+    authors_all = check_authors(conf, indexes)
     tiempo_final_scan = time()
 
     authors = authors_all.dropna()
