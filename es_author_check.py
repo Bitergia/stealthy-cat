@@ -20,6 +20,14 @@
 # Authors:
 #   Quan Zhou <quan@bitergia.com>
 #
+# This script check if the data is correct
+# These checks includ:
+#   - If in author_name contends invalid character like '@' or is empty
+#   - If in author_uuid contends invalid character like '-' or is empty
+#   - If the author_name or author_uuid are duplicated
+#   - If the number of the unique author_name and the unique author_uuid
+#     is the same
+#
 
 
 import argparse
@@ -66,7 +74,7 @@ def get_indexes(conf):
 
     return indexes
 
-def check_authors(conf, indexes):
+def get_authors(conf, indexes):
     authors_pandas = []
 
     client = Elasticsearch('https://'+conf['user']+':'+conf['password']+'@'+conf['es'],use_ssl=True,verify_certs=True,ca_certs=certifi.where())
@@ -108,7 +116,7 @@ def main():
     indexes = get_indexes(conf)
 
     time_init_scan = time()
-    authors_all = check_authors(conf, indexes)
+    authors_all = get_authors(conf, indexes)
     time_final_scan = time()
 
     authors = authors_all.dropna()

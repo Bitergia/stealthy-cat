@@ -22,6 +22,8 @@
 # Authors:
 #   Quan Zhou <quan@bitergia.com>
 #
+# This script show you if the data is updated or not by days
+#
 
 
 import argparse

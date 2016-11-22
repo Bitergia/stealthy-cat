@@ -20,19 +20,21 @@
 # Authors:
 #   Quan Zhou <quan@bitergia.com>
 #
+# This script check if the number of the identities are less than 25.
+#
 
 
 import json
 import sys
 
-def openFile(fileName):
+def open_file(fileName):
     f = open(fileName)
     data = f.read()
     json_data = json.loads(data)
 
     return json_data
 
-def createLog(datas):
+def create_log(datas):
     message = "{0:70}{1:30}{2:20}\n".format("Organizations","UUIDs","Number of identities")
     for data in datas:
         value = [data['org'], data['uuid'], data['n_identities']]
@@ -41,14 +43,14 @@ def createLog(datas):
     return message
 
 if __name__ == "__main__":
-    data = openFile('data.json')
+    data = open_file('data.json')
 
     if len(data) == 0:
         success = 0
         print("The all number of identities are less than 25")
     else:
         success = -1
-        log = createLog(data)
+        log = create_log(data)
         print(log)
 
     sys.exit(success)
